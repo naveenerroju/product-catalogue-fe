@@ -16,6 +16,7 @@ The Angular app is the part you see in the browser. The Spring Boot app handles 
 - [How Angular talks to Spring Boot](#how-angular-talks-to-spring-boot)
 - [Project files](#project-files)
 - [Run both applications](#run-both-applications)
+- [Build and deploy the frontend container](#build-and-deploy-the-frontend-container)
 - [Useful Angular ideas in this project](#useful-angular-ideas-in-this-project)
 - [Troubleshooting](#troubleshooting)
 - [Next places to explore](#next-places-to-explore)
@@ -224,6 +225,9 @@ When running with the backend's `local` profile, it uses an in-memory H2 databas
 | `src/app/app.spec.ts` | Unit tests for creating and rendering the root component. The product service is replaced with a small fake in these tests. |
 | `src/styles.css` | Global page styles, such as the body font, background, and box sizing. |
 | `proxy.conf.json` | Forwards `/products` requests from the Angular development server to the backend on port 8080. |
+| `Dockerfile` | Builds the Angular production files and packages them in an Nginx runtime image. |
+| `.dockerignore` | Excludes local dependencies, build output, and Git/editor files from the Docker build context. |
+| `nginx/default.conf.template` | Configures Nginx to serve the frontend and proxy product API requests to the backend URL supplied at container startup. |
 | `public/` | Static files copied into the built app, such as the favicon. |
 
 ### Project configuration files
@@ -306,6 +310,75 @@ npm test -- --watch=false
 - `npm start` runs a development server that rebuilds as you edit files.
 
 The component tests use a fake `ProductService`; they check the Angular component and template without requiring Spring Boot to be running. Use the manual run instructions above to exercise the real frontend/backend connection.
+
+## Build and deploy the frontend container
+
+The root `Dockerfile` builds the Angular app with Node.js, then copies only the compiled browser files into a small Nginx image. AWS can run this container on services such as ECS/Fargate or App Runner.
+
+The container listens on **port 8080**. Its Nginx server serves the Angular page, provides a `/health` endpoint for container health checks, and forwards `/products` requests to the Spring Boot service. This production proxy is separate from `proxy.conf.json`, which only works with Angular's local development server.
+
+### Configure the backend URL
+
+Set the `PRODUCT_SERVICE_URL` environment variable on the running container to the backend's base URL, including its scheme and port but **not** `/products` or a trailing slash. For example:
+
+```text
+PRODUCT_SERVICE_URL=http://product-service:8080
+```
+
+The container's Nginx proxy appends the incoming path, so `GET /products` is sent to `http://product-service:8080/products`.
+
+The URL must be reachable **from the frontend container**:
+
+- For local testing with Spring Boot running on your computer, use `http://host.docker.internal:8080`.
+- For ECS tasks on the same network, use the backend's service-discovery name or internal load balancer URL, for example `http://product-service:8080`. Configure ECS networking/service discovery so the name resolves and the frontend task is allowed to reach the backend on port 8080.
+- For a backend exposed publicly, use its HTTPS URL, such as `https://api.example.com`.
+
+Do not set the backend URL to `localhost` in AWS unless the backend runs in the same container. Inside a container, `localhost` means that container itself.
+
+### Build and test the image locally
+
+Run these commands from the Angular project directory. Make sure the Spring Boot service is running locally first.
+
+```powershell
+docker build -t product-catalogue .
+docker run --rm -p 4200:8080 -e PRODUCT_SERVICE_URL=http://host.docker.internal:8080 product-catalogue
+```
+
+Open [http://localhost:4200](http://localhost:4200). The page is served by Nginx inside Docker; its `/products` requests are forwarded to Spring Boot on your computer. You can also check the container health endpoint at [http://localhost:4200/health](http://localhost:4200/health).
+
+The `PRODUCT_SERVICE_URL` setting is required. If it is missing or the backend cannot be reached, Nginx will not be able to proxy API requests successfully.
+
+### Push the image to Amazon ECR
+
+Create an ECR repository in the AWS region where you plan to deploy. Then, from PowerShell, set the values for your AWS account and repository and run:
+
+```powershell
+$AWS_ACCOUNT_ID = "<your-12-digit-aws-account-id>"
+$AWS_REGION = "ap-south-1"
+$ECR_REPOSITORY = "product-catalogue"
+$ECR_URI = "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
+
+aws ecr get-login-password --region $AWS_REGION |
+  docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+
+docker build -t product-catalogue .
+docker tag product-catalogue:latest "${ECR_URI}:latest"
+docker push "${ECR_URI}:latest"
+```
+
+Replace the account ID and region placeholders with your AWS values. The AWS CLI must be installed and authenticated with permission to push to that ECR repository.
+
+### Run it in an AWS container service
+
+When creating the ECS/Fargate service or another AWS container service:
+
+1. Select the image URI that was pushed to ECR.
+2. Set the container port to **8080**.
+3. Add the environment variable `PRODUCT_SERVICE_URL` with a URL that the frontend container can reach. For an ECS backend, configure networking/service discovery or an internal load balancer; the example name `product-service` only works if you set that up.
+4. Configure the service or load balancer health check to use `GET /health` on port **8080**.
+5. Keep the Spring Boot service and its database separately configured and running. This image contains only the Angular frontend and Nginx proxy.
+
+Terminate public HTTPS traffic at an AWS load balancer or other HTTPS-capable entry point. The frontend container's port 8080 is plain HTTP and should generally be reachable only through the service/load-balancer networking you configure.
 
 ## Useful Angular ideas in this project
 
