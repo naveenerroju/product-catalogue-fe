@@ -1,0 +1,289 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #e8e7e2;
+}
+
+.header-content,
+.page {
+  width: min(100% - 40px, 960px);
+  margin: 0 auto;
+}
+
+.header-content {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #20231f;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.brand-mark,
+.product-icon {
+  display: grid;
+  place-items: center;
+  background: #e9f2e7;
+  color: #396b42;
+  font-weight: 700;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.header-note,
+.count,
+.product-info p {
+  color: #777b74;
+  font-size: 0.88rem;
+}
+
+.page {
+  padding: 52px 0 72px;
+}
+
+.intro {
+  margin-bottom: 30px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #66836a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 5vw, 2.7rem);
+  letter-spacing: -0.045em;
+}
+
+.intro-copy {
+  margin-bottom: 0;
+  color: #71756f;
+}
+
+.panel {
+  border: 1px solid #e8e7e2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(34 40 33 / 3%);
+}
+
+.add-panel {
+  padding: 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.form-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.45fr) auto;
+  align-items: end;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: #41453f;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #dedfd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #20231f;
+  font: inherit;
+}
+
+input:focus {
+  border-color: #66836a;
+  outline: 3px solid #66836a22;
+}
+
+.price-input {
+  position: relative;
+}
+
+.price-input > span {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  color: #777b74;
+  transform: translateY(-50%);
+}
+
+.price-input input {
+  padding-left: 28px;
+}
+
+button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #396b42;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #2f5937;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.notice {
+  margin: 16px 0 0;
+  font-size: 0.9rem;
+}
+
+.error {
+  color: #a53d35;
+}
+
+.success {
+  color: #396b42;
+}
+
+.catalogue-section {
+  margin-top: 40px;
+}
+
+.catalogue-heading {
+  margin-bottom: 16px;
+}
+
+.count {
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #f0f2ed;
+}
+
+.product-list {
+  display: grid;
+  gap: 10px;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.product-icon {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+}
+
+.product-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.product-info h3 {
+  overflow: hidden;
+  margin-bottom: 4px;
+  font-size: 0.98rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-info p {
+  margin-bottom: 0;
+  font-size: 0.8rem;
+}
+
+.product-price {
+  margin-bottom: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  color: #777b74;
+  text-align: center;
+}
+
+.empty-state h3 {
+  margin: 10px 0 6px;
+  color: #20231f;
+  font-size: 1rem;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.empty-icon {
+  color: #66836a;
+  font-size: 2rem;
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding-top: 36px;
+  }
+
+  .form-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-fields label:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .form-fields button {
+    grid-column: 1 / -1;
+  }
+}
